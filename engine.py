@@ -47,7 +47,7 @@ class Engine(object):
 
         # Set up threading to handle i/o in background.
         self.q = Queue()
-        nb_workers = 1
+        nb_workers = 3
         target = self.data_received
         for _ in range(nb_workers):
             worker = Thread(target=target, args=(self.q,), daemon=True)

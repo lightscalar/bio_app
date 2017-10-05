@@ -109,8 +109,11 @@ class Chart(FloatLayout):
 
     def update_scale(self):
         # Perform autoscaling based on max/min values.
-        y_max = np.max(self.scaling_buffer) * (1 + 1e-3)
-        y_min = np.min(self.scaling_buffer) * (1 - 1e-3)
+        y_max = np.max(self.scaling_buffer)
+        y_min = np.min(self.scaling_buffer)
+        margin = 0.1 * (y_max - y_min)
+        y_max *= (1+margin)
+        y_min *= (1-margin)
         a = 0.01
         max_value = float((1 - a) * self.chart_max + a * y_max)
         min_value = float((1 - a) * self.chart_min + a * y_min)

@@ -1,0 +1,538 @@
+#:kivy 1.10.0
+#: include chart.kv
+#: import ScreenManager kivy.uix.screenmanager.ScreenManager
+#: import SwapTransition kivy.uix.screenmanager.SwapTransition
+#: import RiseInTransition kivy.uix.screenmanager.RiseInTransition
+#: import FallOutTransition kivy.uix.screenmanager.FallOutTransition
+#: import FadeTransition kivy.uix.screenmanager.FadeTransition
+#: import Screen kivy.uix.screenmanager.ScreenManager
+#: import SettingsScreen screen
+#: import Image kivy.uix.image
+#:import Factory kivy.factory.Factory
+
+#:set gray (0.188, 0.188, 0.188, 1)
+#:set dark_red (0.776, 0.152, 0.152, 1)
+
+## POPUP Content
+<ExportComplete@BoxLayout>:
+    orientation: 'vertical'
+    Label:
+        text: 'Data exported to Desktop/exported_sessions'
+    Button:
+        size_hint: None, None
+        size: 350, 100
+        text: 'Thanks!'
+        on_release:
+            root.parent.parent.parent.dismiss()
+            app.root.current='session_screen'
+
+## Popup
+<ExportPopup@Popup>:
+    auto_dismiss: False
+    size_hint: None, None
+    size: 1100, 500
+    title: 'Data Exported'
+    ExportComplete:
+
+
+## POPUP Content
+<SessionWarning@BoxLayout>:
+    orientation: 'vertical'
+    Label:
+        text: 'You must specify a session before you can annotate or record.'
+    Button:
+        size_hint: None, None
+        size: 350, 100
+        text: 'Got it.'
+        on_release:
+            root.parent.parent.parent.dismiss()
+            app.root.current='session_screen'
+
+## Popup
+<MyPopup@Popup>:
+    auto_dismiss: False
+    size_hint: None, None
+    size: 1100, 500
+    title: 'No Session Specified'
+    SessionWarning:
+
+## MAIN APPLICATION LAYOUT
+ScreenManager:
+    session_screen: session_screen
+    annotate_screen: annotate_screen
+    pzt_screen: pzt_screen
+    ppg_screen: ppg_screen
+    transition: FallOutTransition()
+    MenuScreen:
+    PiezoScreen:
+        id: pzt_screen
+        on_enter:
+            self.pzt_chart.cartesian.update_axes()
+        on_leave:
+            self.pzt_chart.set_autoscale(False)
+            self.pzt_chart.auto_switch.active = False
+    PPGScreen:
+        id: ppg_screen
+        on_enter:
+            self.ppg_chart.cartesian.update_axes()
+        on_leave:
+            self.ppg_chart.set_autoscale(False)
+            self.ppg_chart.auto_switch.active = False
+    SessionScreen:
+        id: session_screen
+    AnnotateScreen:
+        id: annotate_screen
+
+
+<AnnotationView@BoxLayout>:
+    orientation: 'horizontal'
+    size_hint: 1,1
+    spacing: 0
+    createdAt: ''
+    description: ''
+    value: ''
+    units: ''
+    Label:
+        padding: 15, 15
+        bcolor: 0.4, 0.4, 0.4, 1
+        canvas.before:
+            Color:
+                rgba: self.bcolor
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        text: root.createdAt
+        text_size: self.size
+        valign: 'middle'
+        bold: True
+    Label:
+        bcolor: 0.4, 0.4, 0.4, 1
+        canvas.before:
+            Color:
+                rgba: self.bcolor
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        text: root.description
+        text_size: self.size
+        valign: 'middle'
+    Label:
+        bcolor: 0.4, 0.4, 0.4, 1
+        canvas.before:
+            Color:
+                rgba: self.bcolor
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        text: root.value if len(root.value)<50 else root.value[:50]+'...'
+        text_size: self.size
+        valign: 'middle'
+    Label:
+        bcolor: 0.4, 0.4, 0.4, 1
+        canvas.before:
+            Color:
+                rgba: self.bcolor
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        text: root.units
+    Button:
+        background_normal: ''
+        background_color: (0.4, 0.4, 0.4, 1)
+        color: 0.96, 0.67, 0.21, 1
+        underline: True
+        size_hint: 1, 1
+        text: 'DELETE'
+        bold: True
+        on_press:
+            app.delete_annotation(root._id)
+
+## Layout for the session list.
+<SessionView@BoxLayout>:
+    orientation: 'horizontal'
+    size_hint: 1,1
+    spacing: 0
+    hid: ''
+    createdAt: ''
+    _id: ''
+    Button:
+        size_hint: 1, 1
+        background_normal: ''
+        background_color: (0.4, 0.4, 0.4, 1)
+        text: root.hid
+        underline: True
+        bold: True
+        on_press:
+            app.set_session(root._id)
+            app.root.current = 'menu_screen'
+            print(app.root.session_screen.session_list.data)
+    Label:
+        bcolor: 0.4, 0.4, 0.4, 1
+        canvas.before:
+            Color:
+                rgba: self.bcolor
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        size_hint: 1, 1
+        text: root.createdAt
+    Button:
+        background_normal: ''
+        background_color: (0.4, 0.4, 0.4, 1)
+        color: 0.96, 0.67, 0.21, 1
+        underline: True
+        size_hint: 1, 1
+        text: 'DELETE'
+        bold: True
+        on_press:
+            app.delete_session(root._id)
+    Button:
+        background_normal: ''
+        background_color: (0.4, 0.4, 0.4, 1)
+        color: (1, 1, 1, 1)
+        underline: True
+        size_hint: 1, 1
+        text: 'Export Data'
+        bold: True
+        on_press:
+            app.save_data(root._id)
+            Factory.ExportPopup().open()
+
+
+## LAYOUT FOR THE SESSION LIST/CREATE SCREEN
+<SessionScreen>:
+    id: session_screen
+    name: 'session_screen'
+    session_list: session_list
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: 20
+        padding: 20
+        BoxLayout:
+            size_hint: 0.25, 0.05
+            Label:
+                color: app.session_color
+                text: '{}'.format(app.session_name)
+                text_size: self.size
+                halign: 'left'
+                bold: True
+        BoxLayout:
+            spacing: 20
+            size_hint: 1, 0.10
+            orientation: 'horizontal'
+            Button:
+                size_hint: 0.25, 1
+                text: 'Home'
+                background_normal: ''
+                background_color: (0.188, 0.333, 0.502, 1)
+                bold: True
+                on_press:
+                    root.manager.current = 'menu_screen'
+            Button:
+                text: '+ New Session'
+                background_normal: ''
+                background_color: (0.188, 0.188, 0.188, 1)
+                bold: True
+                on_press:
+                    app.create_session()
+        RV:
+            id: session_list
+            viewclass: 'SessionView'
+            size_hint: 1, 0.90
+            RecycleBoxLayout:
+                spacing: 25
+                size_hint: 1, 1
+                default_size: None, dp(56)
+                default_size_hint: 1.0, None
+                size_hint_y: None
+                height: self.minimum_height
+                orientation: 'vertical'
+
+
+## LAYOUT FOR THE MAIN MENU SCREEN
+<MenuScreen>:
+    name: 'menu_screen'
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: 20
+        padding: 20
+        BoxLayout:
+            size_hint: 0.25, 0.05
+            Label:
+                color: app.session_color
+                text: '{}'.format(app.session_name)
+                text_size: self.size
+                halign: 'left'
+                bold: True
+        BoxLayout:
+            spacing: 20
+            size_hint: 1, 0.10
+            orientation: 'horizontal'
+            Button:
+                text: 'Sessions'
+                background_normal: ''
+                background_color: (0.188, 0.333, 0.502, 1)
+                bold: True
+                on_press:
+                    root.manager.current = 'session_screen'
+            Button:
+                text: 'Annotate'
+                background_normal: ''
+                background_color: (0.188, 0.333, 0.502, 1)
+                bold: True
+                on_press:
+                    root.manager.current = 'annotate_screen'
+            Button:
+                text: 'PZT'
+                background_normal: ''
+                background_color: (0.188, 0.333, 0.502, 1)
+                bold: True
+                on_press:
+                    root.manager.current = 'piezo_screen'
+            Button:
+                text: 'PPG'
+                background_normal: ''
+                background_color: (0.188, 0.333, 0.502, 1)
+                bold: True
+                on_press:
+                    root.manager.current = 'ppg_screen'
+        Image:
+            source: 'bio-heart-logo@2x.png'
+
+
+<PiezoScreen>:
+    name: 'piezo_screen'
+    pzt_chart: pzt_chart
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: 20
+        padding: 20
+        BoxLayout:
+            size_hint: 0.25, 0.05
+            Label:
+                color: app.session_color
+                text: '{}'.format(app.session_name)
+                text_size: self.size
+                halign: 'left'
+                bold: True
+        BoxLayout:
+            spacing: 20
+            size_hint: 1, 0.10
+            orientation: 'horizontal'
+            Button:
+                text: 'Home'
+                size_hint: 0.25, 1
+                background_normal: ''
+                background_color: (0.188, 0.333, 0.502, 1)
+                bold: True
+                on_press:
+                    root.manager.current = 'menu_screen'
+            Button:
+                text: 'Annotate'
+                size_hint: 0.25, 1
+                background_normal: ''
+                background_color: (0.188, 0.333, 0.502, 1)
+                bold: True
+                on_press:
+                    root.manager.current = 'annotate_screen'
+            Button:
+                text: 'PPG'
+                size_hint: 0.25, 1
+                background_normal: ''
+                background_color: (0.188, 0.333, 0.502, 1)
+                bold: True
+                on_press:
+                    root.manager.current = 'ppg_screen'
+            Button:
+                text: 'Stop Recording' if app.recording else 'Start Recording'
+                bold: True
+                background_normal: ''
+                background_color: dark_red if app.recording else gray
+                on_press:
+                    if app.session is None: Factory.MyPopup().open()
+                    app.toggle_recording()
+        Chart:
+            id: pzt_chart
+            sensor_name: 'PZT'
+            size_hint: 1, 0.9
+
+
+<PPGScreen>:
+    name: 'ppg_screen'
+    ppg_chart: ppg_chart
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: 20
+        padding: 20
+        BoxLayout:
+            size_hint: 0.25, 0.05
+            Label:
+                color: app.session_color
+                text: '{}'.format(app.session_name)
+                text_size: self.size
+                halign: 'left'
+                bold: True
+        BoxLayout:
+            spacing: 20
+            size_hint: 1, 0.10
+            orientation: 'horizontal'
+            Button:
+                text: 'Home'
+                size_hint: 0.25, 1
+                background_normal: ''
+                background_color: (0.188, 0.333, 0.502, 1)
+                bold: True
+                on_press:
+                    root.manager.current = 'menu_screen'
+            Button:
+                text: 'Annotate'
+                size_hint: 0.25, 1
+                background_normal: ''
+                background_color: (0.188, 0.333, 0.502, 1)
+                bold: True
+                on_press:
+                    root.manager.current = 'annotate_screen'
+            Button:
+                text: 'PZT'
+                size_hint: 0.25, 1
+                background_normal: ''
+                background_color: (0.188, 0.333, 0.502, 1)
+                bold: True
+                on_press:
+                    root.manager.current = 'piezo_screen'
+            Button:
+                text: 'Stop Recording' if app.recording else 'Start Recording'
+                bold: True
+                background_normal: ''
+                background_color: dark_red if app.recording else gray
+                on_press:
+                    if app.session is None: Factory.MyPopup().open()
+                    app.toggle_recording()
+        Chart:
+            id: ppg_chart
+            sensor_name: 'PPG'
+            size_hint: 1, 0.9
+
+
+<AnnotateScreen>:
+    name: 'annotate_screen'
+    annotation_list: annotation_list
+    description: description
+    on_enter: description.focus = True
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: 20
+        padding: 20
+        BoxLayout:
+            size_hint: 0.25, 0.05
+            Label:
+                color: app.session_color
+                text: '{}'.format(app.session_name)
+                text_size: self.size
+                halign: 'left'
+                bold: True
+        BoxLayout:
+            spacing: 20
+            size_hint: 1, 0.12
+            orientation: 'horizontal'
+            Button:
+                size_hint: 0.25, 1
+                text: 'Home'
+                background_normal: ''
+                background_color: (0.188, 0.333, 0.502, 1)
+                bold: True
+                on_press:
+                    root.manager.current = 'menu_screen'
+            Button:
+                size_hint: 0.25, 1
+                text: 'PZT'
+                background_normal: ''
+                background_color: (0.188, 0.333, 0.502, 1)
+                bold: True
+                on_press:
+                    root.manager.current = 'piezo_screen'
+            Button:
+                size_hint: 0.25, 1
+                text: 'PPG'
+                background_normal: ''
+                background_color: (0.188, 0.333, 0.502, 1)
+                bold: True
+                on_press:
+                    root.manager.current = 'ppg_screen'
+            Button:
+                size_hint: 1, 1
+                text: '+ Add Annotation'
+                background_normal: ''
+                background_color: (0.188, 0.188, 0.188, 1)
+                bold: True
+                on_press:
+                    annotation = {}
+                    annotation['description'] = description.text
+                    annotation['value'] = value.text
+                    annotation['units'] = units.text
+                    if app.session is None: Factory.MyPopup().open()
+                    app.add_annotation(annotation)
+                    description.text = ''
+                    value.text = ''
+                    units.text = ''
+                    description.focus = True
+        BoxLayout:
+            spacing: 20
+            size_hint: 1, 0.15
+            TextInput:
+                id: description
+                padding: 20
+                size_hint: 0.4, 1
+                hint_text: 'Description'
+                multiline: False
+                write_tab: False
+            TextInput:
+                id: value
+                annotation: ''
+                padding: 20
+                size_hint: 0.4, 1
+                hint_text: 'Value'
+                multiline: False
+                write_tab: False
+                on_text_validate:
+                    annotation = {}
+                    annotation['description'] = description.text
+                    annotation['value'] = value.text
+                    annotation['units'] = units.text
+                    if app.session is None: Factory.MyPopup().open()
+                    app.add_annotation(annotation)
+                    description.text = ''
+                    value.text = ''
+                    units.text = ''
+                    description.focus = True
+            TextInput:
+                id: units
+                padding: 20
+                annotation: ''
+                size_hint: 0.2, 1
+                hint_text: 'Units'
+                multiline: False
+                write_tab: False
+                on_text_validate:
+                    annotation = {}
+                    annotation['description'] = description.text
+                    annotation['value'] = value.text
+                    annotation['units'] = units.text
+                    if app.session is None: Factory.MyPopup().open()
+                    app.add_annotation(annotation)
+                    description.text = ''
+                    value.text = ''
+                    units.text = ''
+                    description.focus = True
+        AnnotationList:
+            id: annotation_list
+            viewclass: 'AnnotationView'
+            size_hint: 1, 0.90
+            RecycleBoxLayout:
+                spacing: 25
+                size_hint: 1, 1
+                default_size: None, dp(56)
+                default_size_hint: 1.0, None
+                size_hint_y: None
+                height: self.minimum_height
+                orientation: 'vertical'

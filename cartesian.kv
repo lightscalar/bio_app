@@ -1,0 +1,34 @@
+#:kivy 1.10.0
+
+
+<Cartesian>:
+    canvas:
+        Color:
+            rgba: (0.8, 0.8, 0.8, 1.0)
+        StencilPush
+        Rectangle:
+            pos: self.pos
+            size: self.size
+        StencilUse
+        Rectangle:
+            pos: self.pos
+            size: self.size
+        Color:
+            rgba: (0.776, 0.152, 0.152, 1)
+        Rectangle:
+            id: marker
+            pos: (self.x+self.width-10, self.y)
+            size: (10, self.height)
+        Line:
+            points: self.line_data
+            width: 2
+        Rectangle:
+            pos: self.right-20, self.last_point
+            size: (20, 20)
+        StencilUnUse
+        Rectangle:
+            pos: self.pos
+            size: self.size
+        StencilPop
+
+

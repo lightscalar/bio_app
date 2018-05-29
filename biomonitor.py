@@ -15,13 +15,13 @@ from solid_db import SolidDB
 import time
 
 # Configure the dimensions of the application window.
-Config.set('graphics', 'resizable', '0') # 0 being off 1 being on
-Config.set('graphics', 'width', '1000')
-Config.set('graphics', 'height', '600')
+Config.set("graphics", "resizable", "0")  # 0 being off 1 being on
+Config.set("graphics", "width", "1000")
+Config.set("graphics", "height", "600")
 
 
 # Create an instance of the database.
-db = SolidDB('data/db.json')
+db = SolidDB("data/db.json")
 
 
 class MenuScreen(Screen):
@@ -49,40 +49,41 @@ class PPGScreen(Screen):
 
 
 class RV(RecycleView):
-    '''View the session.'''
+    """View the session."""
 
     def __init__(self, **kwargs):
         super(RV, self).__init__(**kwargs)
         self.refresh()
 
     def refresh(self):
-        data = db.all('sessions')
-        data = sorted(data, key=lambda x: x['createdAt'], reverse=True)
+        data = db.all("sessions")
+        data = sorted(data, key=lambda x: x["createdAt"], reverse=True)
         self.data = data
 
     def create_session(self):
-        '''Create a new session.'''
-        session = {'hid': sixer()}
-        session = db.insert('session', session)
+        """Create a new session."""
+        session = {"hid": sixer()}
+        session = db.insert("session", session)
         self.refresh()
 
 
 class AnnotationList(RecycleView):
-    '''View the session's annotations.'''
-    session_id = StringProperty('')
+    """View the session's annotations."""
+    session_id = StringProperty("")
+
     def __init__(self, **kwargs):
         super(AnnotationList, self).__init__(**kwargs)
         self.refresh()
 
     def refresh(self):
-        print('Refreshing...')
-        data = db.find_where('annotations', 'session_id', self.session_id)
-        data = sorted(data, key=lambda x: x['createdAt'], reverse=True)
+        print("Refreshing...")
+        data = db.find_where("annotations", "session_id", self.session_id)
+        data = sorted(data, key=lambda x: x["createdAt"], reverse=True)
         self.data = data
 
 
 class BiomonitorApp(App):
-    session_name = StringProperty('NO ACTIVE SESSION')
+    session_name = StringProperty("NO ACTIVE SESSION")
     session_color = ListProperty([0.476, 0.476, 0.476, 1])
     sessions = ListProperty([])
     session = ObjectProperty(None)
@@ -90,19 +91,18 @@ class BiomonitorApp(App):
     recording = BooleanProperty(False)
 
     def create_session(self):
-        session = {'hid': sixer()}
-        session = db.insert('session', session)
+        session = {"hid": sixer()}
+        session = db.insert("session", session)
         self.root.session_screen.session_list.refresh()
-        self.set_session(session['_id'])
+        self.set_session(session["_id"])
 
     def set_session(self, session_id):
-        self.session_color = [1,1,1,1]
+        self.session_color = [1, 1, 1, 1]
         self.session = db.find_by_id(session_id)
-        self.session_name = self.session['hid'].upper()
-        self.root.annotate_screen.annotation_list.session_id = \
-                self.session['_id']
+        self.session_name = self.session["hid"].upper()
+        self.root.annotate_screen.annotation_list.session_id = self.session["_id"]
         self.root.annotate_screen.annotation_list.refresh()
-        self.root.current='menu_screen'
+        self.root.current = "menu_screen"
 
     def delete_session(self, session_id):
         db.delete(session_id)
@@ -113,35 +113,35 @@ class BiomonitorApp(App):
         self.root.annotate_screen.annotation_list.refresh()
 
     def add_annotation(self, annotation):
-        '''Add annotation to the current session.'''
+        """Add annotation to the current session."""
         print(self.root.pzt_screen)
         if not self.session:
             # Cannot annotate if there's no active session.
-            self.root.current = 'session_screen'
+            self.root.current = "session_screen"
         else:
-            annotation['session_id'] = self.session['_id']
-            annotation['date'] = time.strftime('%Y-%m-%d', time.localtime())
-            annotation['time'] = time.strftime('%H:%M:%S', time.localtime())
-            db.insert('annotation', annotation)
+            annotation["session_id"] = self.session["_id"]
+            annotation["date"] = time.strftime("%Y-%m-%d", time.localtime())
+            annotation["time"] = time.strftime("%H:%M:%S", time.localtime())
+            db.insert("annotation", annotation)
             self.root.annotate_screen.annotation_list.refresh()
 
     def data_available(self, data):
         # Data is available. Let's take a look.
-        if data[0] == 0: # PZT
+        if data[0] == 0:  # PZT
             self.pzt_chart.add_data(data)
-        if data[0] == 1: # PPG
+        if data[0] == 1:  # PPG
             self.ppg_chart.add_data(data)
 
     def start_recording(self):
         # Start recording PZT/PPG data to the disk.
-        print('Starting to Record.')
+        print("Starting to Record.")
         if self.session is not None:
             self.recording = True
-            self.engine.start_recording(self.session['_id'])
+            self.engine.start_recording(self.session["_id"])
 
     def stop_recording(self):
         # Stop recording data to the disk.
-        print('Data Recording Stopped')
+        print("Data Recording Stopped")
         self.recording = False
         self.engine.stop_recording()
 
@@ -152,7 +152,7 @@ class BiomonitorApp(App):
             self.start_recording()
 
     def save_data(self, session_id):
-        print('Saving session {}'.format(session_id))
+        print("Saving session {}".format(session_id))
         create_csv(session_id)
 
     def build(self):
@@ -170,5 +170,5 @@ class BiomonitorApp(App):
         self.engine.events.on_data += self.data_available
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     BiomonitorApp().run()

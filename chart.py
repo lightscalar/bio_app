@@ -16,18 +16,18 @@ class TimeSeries(object):
         self.v = np.array([])
 
     def push(self, t, v, dt, chart_width):
-        '''Add data to the time series.'''
+        """Add data to the time series."""
         self.t = np.append(self.t, t)
         self.v = np.append(self.v, v)
         self.t -= dt
-        idx = np.nonzero(self.t>-chart_width)[0]
+        idx = np.nonzero(self.t > -chart_width)[0]
         self.t = self.t[idx]
         self.v = self.v[idx]
         return self.t, self.v
 
 
 class Chart(FloatLayout):
-    sensor_name = StringProperty('PZT')
+    sensor_name = StringProperty("PZT")
     chart_max = NumericProperty(2.5)
     chart_min = NumericProperty(0.0)
     chart_width = NumericProperty(10)
@@ -64,7 +64,7 @@ class Chart(FloatLayout):
     def add_data(self, data):
         # Add data to the chart's buffer.
         self.data_buffer.extend(data[2])
-        if len(self.data_buffer)>300:
+        if len(self.data_buffer) > 300:
             self.buffered = True
 
     def tick(self, dt):
@@ -72,7 +72,7 @@ class Chart(FloatLayout):
         # Sample insertion is probabilistic in order to accommodate possible
         # errors in timing. If delta time is too large, we insert a second
         # sample with probability proportional to the timing error.
-        if (self.buffered):
+        if self.buffered:
             # Ratio of actual to expected delta time:
             ratio = 100 * dt
             excess = ratio - 1
@@ -89,7 +89,7 @@ class Chart(FloatLayout):
                 self.scaling_buffer.append(y_val)
 
                 # Insert another sample with some probability.
-                if np.random.rand() < excess and len(self.data_buffer)>100:
+                if np.random.rand() < excess and len(self.data_buffer) > 100:
                     y_val = self.data_buffer.pop(0)
                     t_, v_ = self.ts.push(0, y_val, dt, self.chart_width)
                     self.scaling_buffer.append(y_val)
@@ -112,8 +112,8 @@ class Chart(FloatLayout):
         y_max = np.max(self.scaling_buffer)
         y_min = np.min(self.scaling_buffer)
         margin = 0.1 * (y_max - y_min)
-        y_max *= (1+margin)
-        y_min *= (1-margin)
+        y_max *= 1 + margin
+        y_min *= 1 - margin
         a = 0.01
         max_value = float((1 - a) * self.chart_max + a * y_max)
         min_value = float((1 - a) * self.chart_min + a * y_min)
@@ -126,13 +126,13 @@ class ChartApp(App):
     def build(self):
         chart = Chart()
         chart.init()
-        chart.sensor_name = 'PPG Sensor'
+        chart.sensor_name = "PPG Sensor"
         chart.cartesian.init()
         Clock.schedule_interval(chart.tick, 1.0 / 100)
         return chart
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     # Run the biomonitor.
     ChartApp().run()

@@ -4,11 +4,11 @@ from scipy.interpolate import interp1d
 
 
 def smart_sample(t, x, target_sampling_rate):
-    '''Use cubic spline to downsample.'''
+    """Use cubic spline to downsample."""
     t, x = np.array(t), np.array(x)
-    y = interp1d(t, x, kind='cubic')
-    fs = 1/np.median(np.diff(t))
-    dt = int(np.ceil(fs/target_sampling_rate))
+    y = interp1d(t, x, kind="cubic")
+    fs = 1 / np.median(np.diff(t))
+    dt = int(np.ceil(fs / target_sampling_rate))
     idx = range(0, len(x), dt)
     t_ = t[idx]
     x_ = y(t_)
@@ -16,14 +16,14 @@ def smart_sample(t, x, target_sampling_rate):
 
 
 def lowpass(t, y, filter_order=5, freq_cutoff=10, zi=[]):
-    '''Lowpass Butterworth filter the signal.'''
+    """Lowpass Butterworth filter the signal."""
     # Determine the sampling rate of the supplied data.
-    fs = 1/np.median(np.diff(t))
-    nyquist=0.5*fs
-    f_low = freq_cutoff/nyquist
+    fs = 1 / np.median(np.diff(t))
+    nyquist = 0.5 * fs
+    f_low = freq_cutoff / nyquist
 
     # Create a butterworth filter
-    a,b  = butter(filter_order, f_low, 'low', analog=False)
+    a, b = butter(filter_order, f_low, "low", analog=False)
 
     # Check to see of previous filter delays are passed in.
     if len(zi) == 0:
@@ -37,13 +37,13 @@ def lowpass(t, y, filter_order=5, freq_cutoff=10, zi=[]):
 
 
 def dumb_downsample(t, x, target_sampling_rate):
-    '''Simple downsampling!'''
+    """Simple downsampling!"""
     # Convert to numpy arrays.
     t, x = np.array(t), np.array(x)
 
     # Estimate current sampling rate.
-    fs = 1/np.median(np.diff(t))
-    dt = int(np.ceil(fs/target_sampling_rate))
+    fs = 1 / np.median(np.diff(t))
+    dt = int(np.ceil(fs / target_sampling_rate))
     idx = range(0, len(x), dt)
     t_ = t[idx].tolist()
     v_ = x[idx].tolist()
@@ -51,10 +51,10 @@ def dumb_downsample(t, x, target_sampling_rate):
 
 
 def downsample(t, x, target_sampling_rate):
-    '''Smarter downsampling. We now pad out to appropriate length, and average
+    """Smarter downsampling. We now pad out to appropriate length, and average
        samples appropriately in order to approximately achieve the target
        downsampling rate.
-    '''
+    """
 
     if len(t) == 0:
         # Nothing to downsample. So, um. Sort of awkward.
@@ -64,15 +64,15 @@ def downsample(t, x, target_sampling_rate):
     t, x = np.array(t), np.array(x)
 
     # Estimate current sampling rate.
-    fs = 1/np.median(np.diff(t))
+    fs = 1 / np.median(np.diff(t))
 
     # Calculate the downsample factor, given the target sampling rate.
-    R = int(np.ceil(fs/target_sampling_rate))
+    R = int(np.ceil(fs / target_sampling_rate))
 
     # Determine the padding size & pad the data.
-    padsize = int(np.ceil(len(x)/R)*R - len(x))
-    t = np.append(t, np.zeros(padsize)*np.NaN)
-    x = np.append(x, np.zeros(padsize)*np.NaN)
+    padsize = int(np.ceil(len(x) / R) * R - len(x))
+    t = np.append(t, np.zeros(padsize) * np.NaN)
+    x = np.append(x, np.zeros(padsize) * np.NaN)
 
     # Reshape the data.
     x = x.reshape(-1, R)
@@ -85,10 +85,10 @@ def downsample(t, x, target_sampling_rate):
     return t_, x_
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     # Load some data.
-    v = Vessel('good_collection.dat')
+    v = Vessel("good_collection.dat")
     t = v.t * 1e-6
     y = v.y
     N = len(t[:5000])
@@ -96,11 +96,10 @@ if __name__ == '__main__':
 
     y_filt = []
     zf = []
-    for itr in range(0,N,ds):
+    for itr in range(0, N, ds):
         print(itr)
-        yf, zf = lowpass(t[itr:itr+ds], y[itr:itr+ds], zi=zf)
+        yf, zf = lowpass(t[itr : itr + ds], y[itr : itr + ds], zi=zf)
         y_filt += yf
-
 
     # half = int(np.floor(N/2))
 
@@ -122,4 +121,3 @@ if __name__ == '__main__':
     # plt.plot(t[:N], y_filt)
     # plt.plot(t0, y0_filt)
     # plt.plot(t1, y1_filt)
-

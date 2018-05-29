@@ -8,18 +8,19 @@ from random import random
 
 
 class Axis(object):
-    '''An axis class for easy mapping of numeric domain to pixel range.'''
+    """An axis class for easy mapping of numeric domain to pixel range."""
 
     def __call__(self, x):
         # Map value x in domain to y in range.
-        if self.x1 == self.x2: return x
-        self.s = (self.y2 - self.y1)/(self.x2 - self.x1)
-        return (self.s * (x - self.x1) + self.y1)
+        if self.x1 == self.x2:
+            return x
+        self.s = (self.y2 - self.y1) / (self.x2 - self.x1)
+        return self.s * (x - self.x1) + self.y1
 
     def invert(self, y):
         # Map value y in range to corresponding value x in domain.
-        self.s = (self.y2 - self.y1)/(self.x2 - self.x1)
-        return (1/self.s) * (y - self.y1) + self.x1
+        self.s = (self.y2 - self.y1) / (self.x2 - self.x1)
+        return (1 / self.s) * (y - self.y1) + self.x1
 
     def domain(self, domain_in):
         # Set the domain of the axis.
@@ -56,7 +57,7 @@ class Cartesian(Widget):
         y_domain = [biomonitor.chart_min, biomonitor.chart_max]
         y_range = [self.y, self.y + self.height]
         self.yax.domain(y_domain)
-        self.yax.range (y_range)
+        self.yax.range(y_range)
 
     def draw(self, t_, v_):
         # Add updated time series to the canvas
@@ -74,7 +75,7 @@ class CartesianApp(App):
         return cartesian
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     # Build a cartesian canvas.
     CartesianApp().run()

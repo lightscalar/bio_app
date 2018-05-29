@@ -148,7 +148,7 @@ class Oracle(Thread):
         line = ser.readline()
         chn, timestamp, value = self.parse_biomonitor(line)
         # if chn in self.allowed_channels:
-        if chn in [1,2]:
+        if chn in [1, 2]:
             # self.data[chn].append([chn, timestamp, value])
             if chn == 2:
                 chn = 0

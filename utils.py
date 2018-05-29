@@ -1,6 +1,7 @@
-'''Utility functions for mathtools... tools.'''
+"""Utility functions for mathtools... tools."""
 import numpy as np
-try: 
+
+try:
     import cPickle as pickle
 except:
     import pickle
@@ -8,12 +9,12 @@ import glob
 
 
 class Struct(object):
-    '''Generic lightweight structure for conveniently holding properties.'''
+    """Generic lightweight structure for conveniently holding properties."""
     pass
 
 
-def validate_type(var, white_list, var_name='Input'):
-    '''Ensure that the variable type is in the supplied whitelist. 
+def validate_type(var, white_list, var_name="Input"):
+    """Ensure that the variable type is in the supplied whitelist. 
     INPUTS
         var - variable or object
             A valid Python variable or object.
@@ -24,21 +25,21 @@ def validate_type(var, white_list, var_name='Input'):
         valid_type - boolean
             True if the variable is in the whitelist. Otherwise an error is 
             thrown with an appropriate error message.
-    '''
+    """
     if type(var) in white_list:
         return True
     else:
-        error_message = '%s must be of type: ' % var_name
+        error_message = "%s must be of type: " % var_name
         for idx, allowable_type in enumerate(white_list):
-            if idx == len(white_list)-1:
+            if idx == len(white_list) - 1:
                 error_message += str(allowable_type)
             else:
-                error_message += str(allowable_type) + ', or '
+                error_message += str(allowable_type) + ", or "
         raise ValueError(error_message)
-   
+
 
 def map_to_interval(x, interval, return_all=False):
-    '''Shift and scale vector so that its elements live in the specified 
+    """Shift and scale vector so that its elements live in the specified 
        interval.
     INPUTS
         x - array_like
@@ -61,7 +62,7 @@ def map_to_interval(x, interval, return_all=False):
         scale - float
             The amount by which the data was scaled, after it was shifted. 
             This is returned only if return_all=True.
-    '''
+    """
 
     # Ensure we are working with numpy arrays or lists.
     validate_type(x, [list, np.ndarray])
@@ -71,11 +72,11 @@ def map_to_interval(x, interval, return_all=False):
         interval = np.array(interval)
 
     if len(interval) != 2:
-        raise ValueError('The interval must be a size 2 vector: [a, b]')
-    
+        raise ValueError("The interval must be a size 2 vector: [a, b]")
+
     # Define the shift and scale parameters.
-    scale = (interval.max() - interval.min())/(x.max() - x.min())
-    shift = x.min() - interval.min()/scale
+    scale = (interval.max() - interval.min()) / (x.max() - x.min())
+    shift = x.min() - interval.min() / scale
 
     # Scale & shift the vector.
     x_ = scale * (x - shift)
@@ -87,7 +88,7 @@ def map_to_interval(x, interval, return_all=False):
 
 
 def pseudoinverse(M, return_condition_number=False):
-    '''Find the pseudoinverse of the matrix M using singular value
+    """Find the pseudoinverse of the matrix M using singular value
        decomposition.
     INPUT
         M - array_like
@@ -101,14 +102,14 @@ def pseudoinverse(M, return_condition_number=False):
         cond - float
             The condition number of the inversion (i.e., the ratio of the
             largest to smallest singular values).
-    '''
+    """
     # Compute the singular value decomposition.
     U, s, Vt = np.linalg.svd(M, full_matrices=False)
     V = Vt.T
 
     # Construct the pseudoinverse and compute the condition number.
-    M_pinv = V.dot(np.diag(1/s)).dot(U.T)
-    condition_number = s.max()/s.min() 
+    M_pinv = V.dot(np.diag(1 / s)).dot(U.T)
+    condition_number = s.max() / s.min()
 
     # If requested, return condition number; otherwise, don't.
     if return_condition_number:
@@ -118,7 +119,7 @@ def pseudoinverse(M, return_condition_number=False):
 
 
 def least_squares(basis, y=None, coefs=None):
-    '''Find the least square fit to one-dimensional data using the specified 
+    """Find the least square fit to one-dimensional data using the specified 
        basis. OR, if coefficients are specified rather than data, y, the
        coefficients are used to generate the fit; in this case, the number of
        coefficients must equal basis.nb_bases.
@@ -137,36 +138,35 @@ def least_squares(basis, y=None, coefs=None):
                 - dy:       The derivative of the best fit.
                 - d2y:      The second derivative of the best fit.
                 - coefs:    The coefficients used for the fit.
-    '''
+    """
 
     # Do we have data, or must we do the fit?
-    if (y is not None):
+    if y is not None:
         # Augment the data (for regularization).
         augmented_y = basis.augment(y)
 
         # Perform the least squares fit using the precomputed pseudoinverse!
         coefs = basis.inverse.dot(augmented_y)
 
-    if (coefs is None):
-        raise ValueError('Cannot project onto basis! No data or coefficients!')
+    if coefs is None:
+        raise ValueError("Cannot project onto basis! No data or coefficients!")
 
     # Generate a fit Struct object to hold the results.
-    fit                         = Struct()
-    fit.coefs                   = coefs
-    fit.x                       = basis.x
-    fit.y                       = np.zeros_like(basis.x)
-    fit.dy                      = np.zeros_like(basis.x)
-    fit.d2y                     = np.zeros_like(basis.x)
-    fit.y[basis.valid_idx]      = basis.B.dot(coefs)
-    fit.dy[basis.valid_idx]     = basis.dB.dot(coefs)
-    fit.d2y[basis.valid_idx]    = basis.d2B.dot(coefs)
+    fit = Struct()
+    fit.coefs = coefs
+    fit.x = basis.x
+    fit.y = np.zeros_like(basis.x)
+    fit.dy = np.zeros_like(basis.x)
+    fit.d2y = np.zeros_like(basis.x)
+    fit.y[basis.valid_idx] = basis.B.dot(coefs)
+    fit.dy[basis.valid_idx] = basis.dB.dot(coefs)
+    fit.d2y[basis.valid_idx] = basis.d2B.dot(coefs)
 
     return fit
 
 
-
 class Vessel(object):
-    '''Create a container object that holds properties. Can be easily saved &
+    """Create a container object that holds properties. Can be easily saved &
        loaded.  
     USAGE
         Create a Vessel instance:
@@ -215,7 +215,7 @@ class Vessel(object):
             >>>     exec('%s=w.%s') % (key,key)
 
         The previously saved local scope will now be reconstituted.
-    '''
+    """
 
     def __init__(self, filename=None):
         self._filename = filename
@@ -225,17 +225,17 @@ class Vessel(object):
                 self.load()
 
     def _set_filename(self, filename):
-        '''Set the object's filename. If filename does not exist, throw an
-        error.'''
+        """Set the object's filename. If filename does not exist, throw an
+        error."""
         if filename:
             self._filename = filename
         if not self._filename:
-            raise ValueError('No filename specified.')
+            raise ValueError("No filename specified.")
 
     def ingest(self, var_dict, ignore_variable_names=None):
-        '''Ingest a dictionary of variables (such as locals(), e.g.). Only
+        """Ingest a dictionary of variables (such as locals(), e.g.). Only
         variables in the supplied (or default) white list will be retained.
-        Variables are added as attributes to the object.  '''
+        Variables are added as attributes to the object.  """
         if ignore_variable_names:
             self.ignore_variable_names = ignore_variable_names
         else:
@@ -247,9 +247,9 @@ class Vessel(object):
     @property
     def keys(self):
         keys = list(self.__dict__.keys())
-        keys.remove('_filename') # don't show internal filename.
+        keys.remove("_filename")  # don't show internal filename.
         keys.sort()
-        keys.append('current_filename')
+        keys.append("current_filename")
         return keys
 
     @property
@@ -257,16 +257,16 @@ class Vessel(object):
         return self._filename
 
     def save(self, filename=None):
-        '''Save the data into a file with the specified name.'''
+        """Save the data into a file with the specified name."""
         self._set_filename(filename)
-        f = open(self._filename, 'wb')
+        f = open(self._filename, "wb")
         pickle.dump(self.__dict__, f, protocol=pickle.HIGHEST_PROTOCOL)
         f.close()
 
     def load(self, filename=None):
-        '''Load object from specified file.'''
+        """Load object from specified file."""
         self._set_filename(filename)
-        f = open(self._filename, 'rb')
+        f = open(self._filename, "rb")
         loaded_object = pickle.load(f)
         f.close()
         # Unpack the object and add variables as properties to this object.
@@ -275,7 +275,7 @@ class Vessel(object):
 
 
 def mahal(x, mu=None, S=None, return_stats=False):
-    '''Find the Mahalanobis distance between row vectors in x and mean mu, with
+    """Find the Mahalanobis distance between row vectors in x and mean mu, with
        covariance S. If mu and S are not provided, the mean and covariance of
        x are used instead.
     INPUTS
@@ -295,9 +295,9 @@ def mahal(x, mu=None, S=None, return_stats=False):
             The mean vector used in Mahalanobis calculations.  
         S - array_like
             The covariance matrix used.
-        '''
+        """
     x = np.array(x)
-    if (mu is None):
+    if mu is None:
         mu = x.mean(0)
         S = np.cov(x.T)
 

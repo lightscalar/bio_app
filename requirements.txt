@@ -341,7 +341,7 @@ untangle==1.1.1
 update==0.0.1
 urllib3==1.21.1
 voc==0.1.4
-waitress==1.0.2
+waitress==1.4.2
 watchdog==0.8.3
 wcwidth==0.1.7
 web-cache==1.0.2

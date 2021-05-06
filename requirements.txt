@@ -73,7 +73,7 @@ Events==0.3
 fastcache==1.0.2
 fastkde==1.0.13
 Flask==0.12
-Flask-Cors==3.0.2
+Flask-Cors==3.0.9
 Flask-RESTful==0.3.6
 Flask-SocketIO==2.9.2
 ftfy==4.4.3

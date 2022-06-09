@@ -48,7 +48,7 @@ conda==4.4.9
 configobj==5.0.6
 constantly==15.1.0
 contextlib2==0.5.4
-cookiecutter==1.5.1
+cookiecutter==2.1.1
 cryptography==1.7.1
 custom-inherit==2.1.1
 cycler==0.10.0

@@ -154,7 +154,7 @@ numpydoc==0.6.0
 oandapy==0.1
 odo==0.5.0
 olefile==0.44
-openpyxl==2.4.1
+openpyxl==2.4.2
 pachi-py==0.0.21
 pandas==0.18.1
 pandas-datareader==0.4.0

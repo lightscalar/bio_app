@@ -125,7 +125,7 @@ Logbook==1.0.0
 lru-dict==1.1.6
 lxml==3.7.2
 mahotas==1.4.4
-Mako==1.0.6
+Mako==1.2.2
 Markdown==2.6.11
 markovify==0.6.0
 MarkupSafe==0.23

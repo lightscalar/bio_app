@@ -108,7 +108,7 @@ jedi==0.11.0
 Jinja2==2.9.4
 jinja2-time==0.2.0
 jmespath==0.9.3
-joblib==0.11
+joblib==1.2.0
 jsonschema==2.5.1
 jupyter==1.0.0
 jupyter-client==4.4.0
